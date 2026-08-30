@@ -23,6 +23,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".features.permissions.presentation.RequestingPermissionsScreen"
+            android:exported="false"
+            android:label="@string/title_activity_requesting_permissions_screen"
+            android:theme="@style/Theme.TheNoMan"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

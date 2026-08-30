@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">The No Man</string>
+    <string name="title_activity_requesting_permissions_screen">RequestingPermissionsScreen</string>
 </resources>
