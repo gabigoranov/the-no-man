@@ -1,23 +1,18 @@
 package com.thenoman.app.features.permissions.presentation
 
-import android.R
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowRight
-import androidx.compose.material.icons.filled.ArrowRightAlt
-import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -27,19 +22,38 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.thenoman.app.features.permissions.data.requiredPermissions
+import com.thenoman.app.features.permissions.data.listOfRequiredPermissions
 import com.thenoman.app.ui.theme.dimens
 import com.thenoman.app.ui.theme.spacing
+import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.thenoman.app.features.permissions.viewmodel.RequestPermissionsViewModel
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun RequestPermissionsScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: RequestPermissionsViewModel = viewModel()
 ) {
+    val context = LocalContext.current
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+
+    //TODO: Fix bug where you need to enter and exit twice
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.reloadPermissions()
+    }
+
     Scaffold(
         modifier = modifier,
         bottomBar = {
@@ -78,22 +92,23 @@ fun RequestPermissionsScreen(
             Column(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                requiredPermissions.mapIndexed { idx, it ->
+                uiState.value.requiredPermissions.mapIndexed { idx, it ->
                     SegmentedListItem(
-                        content = { Text(it.title) },
+                        content = { Text(it.item.title) },
                         colors = ListItemDefaults.segmentedColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                         ),
+                        verticalAlignment = Alignment.CenterVertically,
                         supportingContent = {
                             Text(
-                                it.description,
+                                it.item.description,
                                 style = MaterialTheme.typography.bodySmall
                             )
                         },
                         leadingContent = {
                             Icon(
-                                imageVector = it.icon,
-                                contentDescription = it.iconDescription,
+                                imageVector = it.item.icon,
+                                contentDescription = it.item.iconDescription,
                                 modifier = Modifier
                                     .background(
                                         color = MaterialTheme.colorScheme.primaryContainer,
@@ -104,16 +119,41 @@ fun RequestPermissionsScreen(
                             )
                         },
                         trailingContent = {
-                            Button(
-                                content = { Text("Grant") },
-                                onClick = {}
-                            )
+                            if (it.isGranted) {
+                                Icon(
+                                    imageVector = Icons.Default.Done,
+                                    contentDescription = "Permission is granted",
+                                    modifier = modifier
+                                        .background(
+                                            color = MaterialTheme.colorScheme.primaryContainer,
+                                            shape = CircleShape
+                                        )
+                                        .padding(MaterialTheme.spacing.extraSmall)
+                                )
+                            } else {
+                                Button(
+                                    content = { Text("Grant") },
+                                    onClick = {
+                                        val intent = Intent(it.item.permissionIntent).apply {
+                                            data = "package:${context.packageName}".toUri()
+                                        }
+
+                                        context.startActivity(intent)
+                                    }
+                                )
+                            }
                         },
                         shapes = ListItemDefaults.segmentedShapes(
                             index = idx,
-                            count = requiredPermissions.count()
+                            count = listOfRequiredPermissions.count()
                         ),
-                        verticalAlignment = Alignment.CenterVertically
+                        onClick = {
+                            val intent = Intent(it.item.permissionIntent).apply {
+                                data = "package:${context.packageName}".toUri()
+                            }
+
+                            context.startActivity(intent)
+                        }
                     )
                 }
             }
