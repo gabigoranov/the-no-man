@@ -44,4 +44,10 @@ class RequestPermissionsViewModel(
             areAllPermissionsGranted = newItemStates.all { it.isGranted }
         )
     }
+
+    fun verifyPermissions(): Boolean {
+        reloadPermissions()
+
+        return uiState.value.areAllPermissionsGranted
+    }
 }

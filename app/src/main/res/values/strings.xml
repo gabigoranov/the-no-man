@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">The No Man</string>
     <string name="title_activity_requesting_permissions_screen">RequestingPermissionsScreen</string>
+    <string name="accessibility_service_description">The No Man uses an accessibility service to detect when LLM apps are opened and when it has to interfere to stop toxic prompting.</string>
 </resources>

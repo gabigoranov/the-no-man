@@ -8,4 +8,5 @@ data class PermissionItem(
     val icon: ImageVector,
     val iconDescription: String,
     val permissionIntent: String,
+    val intentRequiresPackageExtension: Boolean = true
 )
