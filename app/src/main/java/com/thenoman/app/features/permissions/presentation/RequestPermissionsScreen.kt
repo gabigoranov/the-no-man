@@ -26,7 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -38,11 +37,11 @@ import com.thenoman.app.features.permissions.viewmodel.RequestPermissionsViewMod
 import com.thenoman.app.ui.theme.dimens
 import com.thenoman.app.ui.theme.spacing
 
-@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun RequestPermissionsScreen(
     modifier: Modifier = Modifier,
-    viewModel: RequestPermissionsViewModel = viewModel()
+    viewModel: RequestPermissionsViewModel = viewModel(),
+    onNavigateToHome: () -> Unit,
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -57,7 +56,8 @@ fun RequestPermissionsScreen(
         bottomBar = {
             NextButton(
                 isEnabled = uiState.areAllPermissionsGranted,
-                verifyPermissions = viewModel::verifyPermissions
+                verifyPermissions = viewModel::verifyPermissions,
+                onClicked = onNavigateToHome
             )
         },
     ) { innerPadding ->
@@ -83,6 +83,7 @@ fun RequestPermissionsScreen(
 private fun NextButton(
     isEnabled: Boolean,
     verifyPermissions: () -> Boolean,
+    onClicked: () -> Unit
 ) {
     Button(
         content = { Text("Next") },
@@ -93,9 +94,11 @@ private fun NextButton(
             .height(ButtonDefaults.MediumContainerHeight),
         onClick = {
             // Verify all permissions are granted in case the user tries to trick the app
-            verifyPermissions()
+            if(!verifyPermissions()){
+                return@Button
+            }
 
-            //TODO: Navigate to home screen
+            onClicked()
         },
     )
 }
